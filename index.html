@@ -238,7 +238,7 @@
     <div class="panel-head">
       <h2>Projeção por mês</h2>
       <div class="btn-row">
-        <span class="hint-sm" id="projHint">Baseado nos períodos programados na aba Afastamentos</span>
+        <span class="hint-sm" id="projHint">Todos os meses de 2026 — férias, licenças e agregados</span>
         <select id="projMonth"></select>
       </div>
     </div>
@@ -347,7 +347,7 @@ const STATUS_META = {
   ferias:   { label:'Férias',             cls:'st-ferias',   color:'var(--st-ferias)'  },
   saude:    { label:'Licença Saúde',      cls:'st-saude',    color:'var(--st-saude)'   },
   especial: { label:'Licença Especial',   cls:'st-especial', color:'var(--st-especial)'},
-  agregado: { label:'Agregado (curso)',   cls:'st-agregado', color:'var(--st-agregado)'},
+  agregado: { label:'Adido (curso)',   cls:'st-agregado', color:'var(--st-agregado)'},
   outro:    { label:'Outro Afastamento',  cls:'st-outro',    color:'var(--st-outro)'   },
 };
 const STATUS_HEX = { ativo:'#3ecf8e', ferias:'#ffb020', saude:'#ff5a5f', especial:'#a78bfa', agregado:'#5b9bd5', outro:'#8b93a1' };
@@ -534,7 +534,7 @@ function renderKPIs(){
     {cls:'ferias', num: counts.ferias, lbl:'De férias', pct: pct(counts.ferias)},
     {cls:'saude', num: counts.saude, lbl:'Licença saúde', pct: pct(counts.saude)},
     {cls:'especial', num: counts.especial, lbl:'Licença especial', pct: pct(counts.especial)},
-    {cls:'agregado', num: counts.agregado, lbl:'Agregado (curso)', pct: pct(counts.agregado)},
+    {cls:'agregado', num: counts.agregado, lbl:'Adido (curso)', pct: pct(counts.agregado)},
     {cls:'outro', num: counts.outro, lbl:'Outros afastamentos', pct: pct(counts.outro)},
   ];
   document.getElementById('kpiGrid').innerHTML = cards.map(c=>`
@@ -626,14 +626,15 @@ function renderBreakdown(){
 function buildMonthOptions(){
   const sel = document.getElementById('projMonth');
   const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentKey = `${currentYear}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const opts = [];
-  for(let i=0;i<12;i++){
-    const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
-    const y = d.getFullYear(), m = d.getMonth()+1;
-    const key = `${y}-${String(m).padStart(2,'0')}`;
+  for(let m=1;m<=12;m++){
+    const d = new Date(currentYear, m-1, 1);
+    const key = `${currentYear}-${String(m).padStart(2,'0')}`;
     let label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
     label = label.charAt(0).toUpperCase()+label.slice(1);
-    opts.push(`<option value="${key}">${label}</option>`);
+    opts.push(`<option value="${key}"${key===currentKey?' selected':''}>${label}</option>`);
   }
   sel.innerHTML = opts.join('');
   sel.addEventListener('change', renderProjecao);
