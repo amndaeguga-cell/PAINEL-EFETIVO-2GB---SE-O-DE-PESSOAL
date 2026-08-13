@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -310,6 +309,7 @@
         <table id="tbl">
           <thead>
             <tr>
+              <th data-key="ordem">Ord.</th>
               <th data-key="nome">Nome</th>
               <th data-key="matricula">Matrícula</th>
               <th data-key="posto">Posto/Grad.</th>
@@ -405,7 +405,7 @@ let afastamentos = [];
 let activeSecoes = new Set();
 let activeStatuses = new Set();
 let searchTerm = '';
-let sortKey = 'nome';
+let sortKey = 'ordem';
 let sortDir = 1;
 let refreshTimer = null;
 
@@ -510,6 +510,11 @@ function filtered(){
 
 function sortRows(rows){
   return rows.slice().sort((a,b)=>{
+    if(sortKey==='ordem'){
+      const av = (a.ordem===null || a.ordem===undefined) ? Infinity : a.ordem;
+      const bv = (b.ordem===null || b.ordem===undefined) ? Infinity : b.ordem;
+      return (av-bv)*sortDir;
+    }
     let av = (a[sortKey]||''), bv = (b[sortKey]||'');
     if(av < bv) return -1*sortDir;
     if(av > bv) return 1*sortDir;
@@ -807,6 +812,7 @@ function renderTable(){
     const st = STATUS_META[m.status] || STATUS_META.outro;
     return `
       <tr>
+        <td class="mono">${m.ordem ?? '—'}</td>
         <td>${escapeHtml(m.nome||'—')}</td>
         <td class="mono">${escapeHtml(m.matricula||'—')}</td>
         <td>${escapeHtml(m.posto||'—')}</td>
