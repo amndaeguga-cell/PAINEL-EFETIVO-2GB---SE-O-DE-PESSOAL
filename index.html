@@ -322,6 +322,7 @@
               <th data-key="status">Situação</th>
               <th data-key="inicio">Início</th>
               <th data-key="fim">Fim previsto</th>
+              <th>Dias rest.</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -534,6 +535,18 @@ function fmtDate(d){
   return day && m && y ? `${day}/${m}/${y}` : d;
 }
 
+function diasRestantes(status, fimStr){
+  if(status === 'ativo' || !fimStr) return '—';
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const [y,m,d] = fimStr.split('-').map(Number);
+  const fim = new Date(y, m-1, d);
+  const dias = Math.round((fim - hoje) / 86400000);
+  if(dias < 0) return '—';
+  if(dias === 0) return 'último dia';
+  return `${dias} dia${dias===1?'':'s'}`;
+}
+
 function renderKPIs(){
   const total = militares.length;
   const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
@@ -719,22 +732,28 @@ function renderProjecao(){
   }).join('');
 
   // Lista nominal dos militares com afastamento projetado nesse mês
-  const projetados = militares
-    .filter(m => statusByMat[m.matricula])
-    .map(m => ({ m, tipo: statusByMat[m.matricula] }))
-    .sort((a,b) => (a.m.nome||'').localeCompare(b.m.nome||''));
+  const [py, pm] = monthKey.split('-').map(Number);
+  const pLastDay = new Date(py, pm, 0).getDate();
+  const pMonthStart = `${monthKey}-01`;
+  const pMonthEnd = `${monthKey}-${String(pLastDay).padStart(2,'0')}`;
 
   const periodoByMat = {};
   afastamentos.forEach(a=>{
     if(!a.inicio || !a.fim) return;
-    const [py, pm] = monthKey.split('-').map(Number);
-    const pLastDay = new Date(py, pm, 0).getDate();
-    const pMonthStart = `${monthKey}-01`;
-    const pMonthEnd = `${monthKey}-${String(pLastDay).padStart(2,'0')}`;
     if(a.inicio <= pMonthEnd && a.fim >= pMonthStart){
       if(!periodoByMat[a.matricula]) periodoByMat[a.matricula] = a;
     }
   });
+
+  const TIPO_ORDER = ['ferias','saude','especial','agregado','indisponivel','outro'];
+  const projetados = militares
+    .filter(m => statusByMat[m.matricula])
+    .map(m => ({ m, tipo: statusByMat[m.matricula] }))
+    .sort((a,b) => {
+      const oa = TIPO_ORDER.indexOf(a.tipo), ob = TIPO_ORDER.indexOf(b.tipo);
+      if(oa !== ob) return oa - ob;
+      return (a.m.nome||'').localeCompare(b.m.nome||'');
+    });
 
   document.getElementById('projEmpty').style.display = projetados.length ? 'none' : 'block';
   document.getElementById('projCount').textContent = projetados.length
@@ -742,6 +761,9 @@ function renderProjecao(){
   document.getElementById('projTbody').innerHTML = projetados.map(({m, tipo}) => {
     const st = STATUS_META[tipo] || STATUS_META.outro;
     const periodo = periodoByMat[m.matricula];
+    // Mostra só o trecho do período que cai dentro do mês selecionado
+    const trechoInicio = periodo && periodo.inicio > pMonthStart ? periodo.inicio : pMonthStart;
+    const trechoFim = periodo && periodo.fim < pMonthEnd ? periodo.fim : pMonthEnd;
     return `
       <tr>
         <td>${escapeHtml(m.nome||'—')}</td>
@@ -749,7 +771,7 @@ function renderProjecao(){
         <td>${escapeHtml(m.posto||'—')}</td>
         <td><span class="sec-badge">${setorLabel(m.secao)}</span></td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
-        <td>${periodo ? fmtDate(periodo.inicio) + ' – ' + fmtDate(periodo.fim) : '—'}</td>
+        <td>${periodo ? fmtDate(trechoInicio) + ' – ' + fmtDate(trechoFim) : '—'}</td>
       </tr>`;
   }).join('');
 }
@@ -827,6 +849,7 @@ function renderTable(){
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td>${fmtDate(m.inicio)}</td>
         <td>${fmtDate(m.fim)}</td>
+        <td class="mono">${diasRestantes(m.status, m.fim)}</td>
       </tr>`;
   }).join('');
 }
