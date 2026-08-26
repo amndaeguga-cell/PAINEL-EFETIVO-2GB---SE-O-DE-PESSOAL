@@ -24,12 +24,14 @@
     --red:#ff5a5f;
     --violet:#a78bfa;
     --steel:#5b9bd5;
+    --teal:#2dd4bf;
     --gray:#8b93a1;
     --st-ativo:var(--green);
     --st-ferias:var(--amber);
     --st-saude:var(--red);
     --st-especial:var(--violet);
     --st-agregado:var(--steel);
+    --st-indisponivel:var(--teal);
     --st-outro:var(--gray);
     --shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 10px 30px -14px rgba(0,0,0,.6);
   }
@@ -74,7 +76,7 @@
   .source-banner b{color:var(--ink);}
   .refresh-row{display:flex;align-items:center;gap:10px;}
 
-  .kpi-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:20px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:20px;}
   .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 16px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
   .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;}
   .kpi .num{font-size:36px;font-weight:400;line-height:1;color:#fff;}
@@ -87,6 +89,7 @@
   .kpi.saude::before{background:var(--st-saude);}
   .kpi.especial::before{background:var(--st-especial);}
   .kpi.agregado::before{background:var(--st-agregado);}
+  .kpi.indisponivel::before{background:var(--st-indisponivel);}
   .kpi.outro::before{background:var(--st-outro);}
 
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-bottom:18px;}
@@ -138,6 +141,7 @@
   .chip.st-saude.active{background:var(--st-saude);border-color:var(--st-saude);color:#1a0203;}
   .chip.st-especial.active{background:var(--st-especial);border-color:var(--st-especial);color:#16092e;}
   .chip.st-agregado.active{background:var(--st-agregado);border-color:var(--st-agregado);color:#04141f;}
+  .chip.st-indisponivel.active{background:var(--st-indisponivel);border-color:var(--st-indisponivel);color:#032420;}
   .chip.st-outro.active{background:var(--st-outro);border-color:var(--st-outro);color:#0d1014;}
 
   input[type=text], select{
@@ -168,6 +172,7 @@
   .badge.st-saude{background:rgba(255,90,95,.16);color:var(--st-saude);}
   .badge.st-especial{background:rgba(167,139,250,.16);color:var(--st-especial);}
   .badge.st-agregado{background:rgba(91,155,213,.16);color:var(--st-agregado);}
+  .badge.st-indisponivel{background:rgba(45,212,191,.16);color:var(--st-indisponivel);}
   .badge.st-outro{background:rgba(139,147,161,.16);color:var(--st-outro);}
   .sec-badge{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:11.5px;background:var(--panel-alt);border:1px solid var(--line);color:var(--ink);padding:3px 8px;border-radius:5px;}
   .empty{text-align:center;padding:40px 20px;color:var(--ink-dim);}
@@ -349,9 +354,10 @@ const STATUS_META = {
   saude:    { label:'Licença Saúde',      cls:'st-saude',    color:'var(--st-saude)'   },
   especial: { label:'Licença Especial',   cls:'st-especial', color:'var(--st-especial)'},
   agregado: { label:'Adido (curso)',   cls:'st-agregado', color:'var(--st-agregado)'},
+  indisponivel: { label:'Indisponível (curso)', cls:'st-indisponivel', color:'var(--st-indisponivel)'},
   outro:    { label:'Outro Afastamento',  cls:'st-outro',    color:'var(--st-outro)'   },
 };
-const STATUS_HEX = { ativo:'#3ecf8e', ferias:'#ffb020', saude:'#ff5a5f', especial:'#a78bfa', agregado:'#5b9bd5', outro:'#8b93a1' };
+const STATUS_HEX = { ativo:'#3ecf8e', ferias:'#ffb020', saude:'#ff5a5f', especial:'#a78bfa', agregado:'#5b9bd5', indisponivel:'#2dd4bf', outro:'#8b93a1' };
 
 const BASE_SETORES = [
   {key:'1', label:'1ª SB', group:'Operacional'},
@@ -530,7 +536,7 @@ function fmtDate(d){
 
 function renderKPIs(){
   const total = militares.length;
-  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, outro:0 };
+  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
   militares.forEach(m=> counts[m.status] = (counts[m.status]||0)+1 );
   const pct = n => total ? Math.round(n/total*100)+'%' : '—';
 
@@ -541,6 +547,7 @@ function renderKPIs(){
     {cls:'saude', num: counts.saude, lbl:'Licença saúde', pct: pct(counts.saude)},
     {cls:'especial', num: counts.especial, lbl:'Licença especial', pct: pct(counts.especial)},
     {cls:'agregado', num: counts.agregado, lbl:'Adido (curso)', pct: pct(counts.agregado)},
+    {cls:'indisponivel', num: counts.indisponivel, lbl:'Indisponível (curso)', pct: pct(counts.indisponivel)},
     {cls:'outro', num: counts.outro, lbl:'Outros afastamentos', pct: pct(counts.outro)},
   ];
   document.getElementById('kpiGrid').innerHTML = cards.map(c=>`
@@ -554,7 +561,7 @@ function renderKPIs(){
 
 function buildDonut(counts, total){
   const R = 62, STROKE = 20, C = 2*Math.PI*R, CX=90, CY=90;
-  const order = ['ativo','ferias','saude','especial','agregado','outro'];
+  const order = ['ativo','ferias','saude','especial','agregado','indisponivel','outro'];
   let offset = 0;
   let segs = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#1c2530" stroke-width="${STROKE}"/>`;
   if(total){
@@ -580,7 +587,7 @@ function buildDonut(counts, total){
 function renderDonut(){
   const wrap = document.getElementById('donutWrap');
   const total = militares.length;
-  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, outro:0 };
+  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
   militares.forEach(m=> counts[m.status] = (counts[m.status]||0)+1 );
 
   if(!total){
@@ -671,7 +678,7 @@ function renderProjecao(){
   const monthKey = sel.value;
   const statusByMat = projectedStatusByMatricula(monthKey);
   const total = militares.length;
-  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, outro:0 };
+  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
   militares.forEach(m=>{
     const tipo = statusByMat[m.matricula] || 'ativo';
     counts[tipo] = (counts[tipo]||0)+1;
