@@ -282,6 +282,30 @@
 
   <div class="panel">
     <div class="panel-head">
+      <h2>Retorno de afastamentos</h2>
+      <span class="hint-sm">Ordem de quem volta primeiro — para incluir na escala</span>
+    </div>
+    <div class="panel-body" style="overflow-x:auto;">
+      <table id="retornoTbl">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Matrícula</th>
+            <th>Posto/Grad.</th>
+            <th>Setor</th>
+            <th>Situação</th>
+            <th>Volta em</th>
+            <th>Dias rest.</th>
+          </tr>
+        </thead>
+        <tbody id="retornoTbody"></tbody>
+      </table>
+      <div class="empty" id="retornoEmpty" style="display:none;">Ninguém afastado no momento — efetivo 100% disponível.</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
       <h2>Efetivo</h2>
       <div class="btn-row">
         <button class="btn" id="btnExport">Exportar JSON</button>
@@ -830,6 +854,28 @@ function renderPostoMatrix(){
   wrap.innerHTML = html;
 }
 
+function renderRetorno(){
+  const afastados = militares
+    .filter(m => m.status !== 'ativo' && m.fim)
+    .slice()
+    .sort((a,b) => a.fim.localeCompare(b.fim));
+
+  document.getElementById('retornoEmpty').style.display = afastados.length ? 'none' : 'block';
+  document.getElementById('retornoTbody').innerHTML = afastados.map(m=>{
+    const st = STATUS_META[m.status] || STATUS_META.outro;
+    return `
+      <tr>
+        <td>${escapeHtml(m.nome||'—')}</td>
+        <td class="mono">${escapeHtml(m.matricula||'—')}</td>
+        <td>${escapeHtml(m.posto||'—')}</td>
+        <td><span class="sec-badge">${setorLabel(m.secao)}</span></td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td>${fmtDate(m.fim)}</td>
+        <td class="mono">${diasRestantes(m.status, m.fim)}</td>
+      </tr>`;
+  }).join('');
+}
+
 function renderTable(){
   const rows = sortRows(filtered());
   const tbody = document.getElementById('tbody');
@@ -864,6 +910,7 @@ function render(){
   renderBreakdown();
   renderProjecao();
   renderPostoMatrix();
+  renderRetorno();
   renderTable();
 }
 
