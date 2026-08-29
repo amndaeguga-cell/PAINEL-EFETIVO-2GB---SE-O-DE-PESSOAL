@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Efetivo — 2º GB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f14;
+    --bg-grid: rgba(255,176,32,.035);
+    --panel:#12181f;
+    --panel-alt:#161d25;
+    --line:#232b35;
+    --line-soft:#1a212a;
+    --ink:#e7edf3;
+    --ink-soft:#8996a6;
+    --ink-dim:#5b6672;
+    --amber:#ffb020;
+    --amber-soft:rgba(255,176,32,.14);
+    --green:#3ecf8e;
+    --red:#ff5a5f;
+    --violet:#a78bfa;
+    --steel:#5b9bd5;
+    --teal:#2dd4bf;
+    --gray:#8b93a1;
+    --st-ativo:var(--green);
+    --st-ferias:var(--amber);
+    --st-saude:var(--red);
+    --st-especial:var(--violet);
+    --st-agregado:var(--steel);
+    --st-indisponivel:var(--teal);
+    --st-outro:var(--gray);
+    --shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 10px 30px -14px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:
+      linear-gradient(var(--bg-grid) 1px,transparent 1px) 0 0/100% 34px,
+      linear-gradient(90deg,var(--bg-grid) 1px,transparent 1px) 0 0/34px 100%,
+      var(--bg);
+    color:var(--ink);font-family:'Inter',system-ui,sans-serif;
+  }
+  h1,h2,h3,.num{font-family:'Bebas Neue',sans-serif;letter-spacing:.02em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  ::selection{background:var(--amber);color:#1a1200;}
+
+  header.top{
+    background:linear-gradient(180deg,#0e141b,#0b0f14 90%);
+    border-bottom:1px solid var(--line);
+    padding:22px 32px 20px;position:relative;
+  }
+  header.top::before{
+    content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+    background:linear-gradient(90deg,transparent,var(--amber) 20%,var(--amber) 80%,transparent);
+    opacity:.55;
+  }
+  .top-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);font-weight:600;margin:0 0 8px;display:flex;align-items:center;gap:8px;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(62,207,142,.18);display:inline-block;}
+  .live-dot.offline{background:var(--red);box-shadow:0 0 0 3px rgba(255,90,95,.18);}
+  @media (prefers-reduced-motion: no-preference){
+    .live-dot{animation:pulse 2.4s ease-in-out infinite;}
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  h1{font-size:34px;font-weight:400;margin:0;color:#fff;line-height:1;}
+  .sub{color:var(--ink-soft);font-size:13px;margin-top:8px;font-family:'Inter',sans-serif;}
+  .clock{font-size:11px;color:var(--ink-dim);text-align:right;text-transform:uppercase;letter-spacing:.08em;}
+  .clock .mono{font-size:15px;color:var(--ink);display:block;margin-top:3px;letter-spacing:0;}
+
+  main{max-width:1320px;margin:0 auto;padding:26px 32px 60px;}
+
+  .source-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--panel-alt);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin-bottom:20px;font-size:12px;color:var(--ink-soft);}
+  .source-banner b{color:var(--ink);}
+  .refresh-row{display:flex;align-items:center;gap:10px;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:20px;}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 16px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;}
+  .kpi .num{font-size:36px;font-weight:400;line-height:1;color:#fff;}
+  .kpi .lbl{font-size:10.5px;color:var(--ink-soft);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Inter',sans-serif;}
+  .kpi .pct{font-size:11px;color:var(--ink-dim);margin-top:3px;font-family:'JetBrains Mono',monospace;}
+  .kpi.total::before{background:var(--ink-soft);}
+  .kpi.total .num{color:var(--amber);}
+  .kpi.ativo::before{background:var(--st-ativo);}
+  .kpi.ferias::before{background:var(--st-ferias);}
+  .kpi.saude::before{background:var(--st-saude);}
+  .kpi.especial::before{background:var(--st-especial);}
+  .kpi.agregado::before{background:var(--st-agregado);}
+  .kpi.indisponivel::before{background:var(--st-indisponivel);}
+  .kpi.outro::before{background:var(--st-outro);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-bottom:18px;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px;}
+  .panel-head h2{font-size:19px;margin:0;font-weight:400;color:#fff;}
+  .panel-head .hint-sm{font-size:11.5px;color:var(--ink-dim);font-family:'Inter',sans-serif;}
+  .panel-body{padding:18px 20px 20px;}
+
+  .charts-row{display:grid;grid-template-columns:280px 1fr;gap:0;}
+  .charts-row > div:first-child{border-right:1px solid var(--line);}
+  .donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:14px;}
+  .legend{display:flex;flex-direction:column;gap:8px;width:100%;max-width:200px;}
+  .legend .item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);justify-content:space-between;}
+  .legend .item .lbl-group{display:flex;align-items:center;gap:8px;}
+  .legend .dot{width:9px;height:9px;border-radius:3px;display:inline-block;flex:none;}
+  .legend .val{font-family:'JetBrains Mono',monospace;color:var(--ink);}
+
+  .bars-wrap{padding:18px 20px;}
+  .grp-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);font-weight:600;margin:14px 0 8px;}
+  .grp-label:first-child{margin-top:0;}
+  .sec-row{display:grid;grid-template-columns:74px 1fr 70px;align-items:center;gap:12px;padding:6px 0;}
+  .sec-row .tag{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:11.5px;color:var(--ink);background:var(--panel-alt);border:1px solid var(--line);border-radius:5px;padding:4px 0;text-align:center;}
+  .stack{height:14px;border-radius:4px;overflow:hidden;display:flex;background:#1c2530;}
+  .stack span{height:100%;}
+  .sec-row .count{font-size:11.5px;color:var(--ink-dim);text-align:right;font-family:'JetBrains Mono',monospace;}
+
+  .matrix-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:720px;}
+  .matrix-tbl th{text-align:center;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-dim);border-bottom:1px solid var(--line);padding:8px 6px;font-weight:600;}
+  .matrix-tbl th:first-child{text-align:left;}
+  .matrix-tbl td{padding:7px 6px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);}
+  .matrix-tbl td:first-child{color:var(--ink);font-weight:500;}
+  .matrix-tbl .num-cell{text-align:center;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;}
+  .matrix-tbl .num-cell.strong{color:var(--ink);font-weight:600;}
+  .matrix-tbl .grp-row td{background:var(--panel-alt);color:var(--amber);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;padding:6px 8px;border-bottom:none;}
+  .matrix-tbl .subtotal-row td{font-weight:600;background:var(--panel-alt);border-top:1px solid var(--line);border-bottom:2px solid var(--line);color:var(--ink);}
+  .matrix-tbl .subtotal-row .num-cell{color:#fff;}
+  .matrix-tbl .total-row td{font-weight:700;background:#1a1200;color:var(--amber);}
+  .matrix-tbl .total-row .num-cell{color:var(--amber);}
+
+  .filters{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;}
+  .filter-group{display:flex;flex-direction:column;gap:6px;}
+  .filter-group .fl{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-dim);font-weight:600;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;max-width:520px;}
+  .chip{border:1px solid var(--line);background:var(--panel-alt);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;user-select:none;color:var(--ink-soft);font-weight:500;transition:.12s;}
+  .chip:hover{border-color:var(--amber);color:var(--ink);}
+  .chip.active{background:var(--amber);border-color:var(--amber);color:#1a1200;font-weight:700;}
+  .chip.st-ativo.active{background:var(--st-ativo);border-color:var(--st-ativo);color:#04180f;}
+  .chip.st-ferias.active{background:var(--st-ferias);border-color:var(--st-ferias);color:#1a1200;}
+  .chip.st-saude.active{background:var(--st-saude);border-color:var(--st-saude);color:#1a0203;}
+  .chip.st-especial.active{background:var(--st-especial);border-color:var(--st-especial);color:#16092e;}
+  .chip.st-agregado.active{background:var(--st-agregado);border-color:var(--st-agregado);color:#04141f;}
+  .chip.st-indisponivel.active{background:var(--st-indisponivel);border-color:var(--st-indisponivel);color:#032420;}
+  .chip.st-outro.active{background:var(--st-outro);border-color:var(--st-outro);color:#0d1014;}
+
+  input[type=text], select{
+    border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;background:var(--panel-alt);color:var(--ink);
+  }
+  input:focus, select:focus{outline:2px solid var(--amber);outline-offset:1px;}
+  .search-wrap{position:relative;}
+  .search-wrap input{width:220px;padding-left:30px;}
+  .search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.4;color:var(--ink-soft);}
+  .clear-link{background:none;border:none;color:var(--amber);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;}
+
+  .btn{border:1px solid var(--line);background:var(--panel-alt);color:var(--ink);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn:hover{border-color:var(--amber);color:#fff;}
+  .btn:disabled{opacity:.5;cursor:default;}
+  .btn-primary{background:var(--amber);border-color:var(--amber);color:#1a1200;}
+  .btn-primary:hover{background:#ffc656;color:#1a1200;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-dim);border-bottom:1px solid var(--line);padding:9px 10px;cursor:pointer;white-space:nowrap;font-weight:600;}
+  thead th:hover{color:var(--amber);}
+  tbody td{padding:10px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle;color:var(--ink-soft);}
+  tbody tr:hover{background:var(--panel-alt);}
+  tbody td:first-child{color:var(--ink);font-weight:500;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .badge.st-ativo{background:rgba(62,207,142,.16);color:var(--st-ativo);}
+  .badge.st-ferias{background:rgba(255,176,32,.16);color:var(--st-ferias);}
+  .badge.st-saude{background:rgba(255,90,95,.16);color:var(--st-saude);}
+  .badge.st-especial{background:rgba(167,139,250,.16);color:var(--st-especial);}
+  .badge.st-agregado{background:rgba(91,155,213,.16);color:var(--st-agregado);}
+  .badge.st-indisponivel{background:rgba(45,212,191,.16);color:var(--st-indisponivel);}
+  .badge.st-outro{background:rgba(139,147,161,.16);color:var(--st-outro);}
+  .sec-badge{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:11.5px;background:var(--panel-alt);border:1px solid var(--line);color:var(--ink);padding:3px 8px;border-radius:5px;}
+  .empty{text-align:center;padding:40px 20px;color:var(--ink-dim);}
+  .empty svg{opacity:.3;margin-bottom:10px;}
+  .count-line{font-size:11.5px;color:var(--ink-dim);margin-top:10px;font-family:'JetBrains Mono',monospace;}
+
+  .error-banner{background:rgba(255,90,95,.1);border:1px solid rgba(255,90,95,.3);color:var(--red);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;display:none;}
+
+  .tabs-bar{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto;}
+  .tab-btn{background:none;border:none;color:var(--ink-dim);font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;padding:10px 16px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.12s;}
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .error-banner.show{display:block;}
+
+  footer{text-align:center;font-size:11px;color:var(--ink-dim);padding:20px;font-family:'JetBrains Mono',monospace;letter-spacing:.02em;}
+
+  @media(max-width:1050px){
+    .kpi-grid{grid-template-columns:repeat(4,1fr);}
+    .charts-row{grid-template-columns:1fr;}
+    .charts-row > div:first-child{border-right:none;border-bottom:1px solid var(--line);}
+  }
+  @media(max-width:640px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    main{padding:18px 14px 40px;}
+    header.top{padding:20px 18px;}
+    table{font-size:12px;}
+    .search-wrap input{width:150px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div>
+      <p class="eyebrow"><span class="live-dot" id="liveDot"></span>CBMPE · 2º Grupamento de Bombeiros · Seção de Pessoal</p>
+      <h1>PAINEL DE EFETIVO</h1>
+      <p class="sub">Consulta de situação do efetivo — subseções operacionais (1ª–7ª SB) e efetivo administrativo</p>
+    </div>
+    <div class="clock">
+      Dados da planilha atualizados em
+      <span class="mono" id="lastUpdate">carregando…</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="source-banner">
+    <span>Este painel é <b>somente leitura</b>. Para alterar dados, edite a planilha do Pecúlio no Google Sheets — as mudanças aparecem aqui na próxima atualização.</span>
+    <div class="refresh-row">
+      <span class="hint-sm" id="autoRefreshLabel">Atualiza automaticamente a cada 60s</span>
+      <button class="btn" id="btnRefresh">↻ Atualizar agora</button>
+    </div>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="tabs-bar" id="tabsBar">
+    <button class="tab-btn active" data-tab="panorama">Panorama</button>
+    <button class="tab-btn" data-tab="projecao">Projeção por Mês</button>
+    <button class="tab-btn" data-tab="posto">Posto/Graduação</button>
+    <button class="tab-btn" data-tab="retorno">Retorno de Afastamentos</button>
+    <button class="tab-btn" data-tab="efetivo">Efetivo (lista completa)</button>
+  </div>
+
+  <div class="tab-panel active" data-tab-panel="panorama">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Panorama do efetivo</h2>
+      <span class="hint-sm">Recalculado a cada atualização dos dados</span>
+    </div>
+    <div class="charts-row">
+      <div class="donut-wrap" id="donutWrap"></div>
+      <div class="bars-wrap" id="secBreakdown"></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" data-tab-panel="projecao">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Projeção por mês</h2>
+      <div class="btn-row">
+        <span class="hint-sm" id="projHint">Todos os meses de 2026 — férias, licenças e agregados</span>
+        <select id="projMonth"></select>
+      </div>
+    </div>
+    <div class="kpi-grid" id="projKpiGrid" style="margin-bottom:18px;"></div>
+    <div class="charts-row">
+      <div class="donut-wrap" id="projDonutWrap"></div>
+      <div class="bars-wrap" id="projBreakdown"></div>
+    </div>
+    <div class="panel-body" style="border-top:1px solid var(--line);">
+      <div style="overflow-x:auto;">
+        <table id="projTbl">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Matrícula</th>
+              <th>Posto/Grad.</th>
+              <th>Setor</th>
+              <th>Situação projetada</th>
+              <th>Período</th>
+            </tr>
+          </thead>
+          <tbody id="projTbody"></tbody>
+        </table>
+        <div class="empty" id="projEmpty" style="display:none;">Nenhum militar com afastamento projetado para este mês.</div>
+      </div>
+      <div class="count-line" id="projCount"></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" data-tab-panel="posto">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Posto/graduação e setor</h2>
+      <span class="hint-sm">Oficiais e praças, por 1ª–7ª SB e Administrativo</span>
+    </div>
+    <div class="panel-body" id="postoMatrix" style="overflow-x:auto;"></div>
+  </div>
+  </div>
+
+  <div class="tab-panel" data-tab-panel="retorno">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Retorno de afastamentos</h2>
+      <span class="hint-sm">Ordem de quem volta primeiro — para incluir na escala</span>
+    </div>
+    <div class="panel-body" style="overflow-x:auto;">
+      <table id="retornoTbl">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Matrícula</th>
+            <th>Posto/Grad.</th>
+            <th>Setor</th>
+            <th>Situação</th>
+            <th>Volta em</th>
+            <th>Dias rest.</th>
+          </tr>
+        </thead>
+        <tbody id="retornoTbody"></tbody>
+      </table>
+      <div class="empty" id="retornoEmpty" style="display:none;">Ninguém afastado no momento — efetivo 100% disponível.</div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" data-tab-panel="efetivo">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Efetivo</h2>
+      <div class="btn-row">
+        <button class="btn" id="btnExport">Exportar JSON</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="filters" style="margin-bottom:16px;">
+        <div class="filter-group">
+          <span class="fl">Setor</span>
+          <div class="chips" id="secChips"></div>
+        </div>
+        <div class="filter-group">
+          <span class="fl">Situação</span>
+          <div class="chips" id="statusChips"></div>
+        </div>
+        <div class="filter-group">
+          <span class="fl">Buscar</span>
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchBox" placeholder="Nome ou matrícula...">
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="fl">&nbsp;</span>
+          <button class="clear-link" id="clearFilters">Limpar filtros</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th data-key="ordem">Ord.</th>
+              <th data-key="nome">Nome</th>
+              <th data-key="matricula">Matrícula</th>
+              <th data-key="posto">Posto/Grad.</th>
+              <th data-key="secao">Setor</th>
+              <th data-key="status">Situação</th>
+              <th data-key="inicio">Início</th>
+              <th data-key="fim">Fim previsto</th>
+              <th>Dias rest.</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="emptyState" style="display:none;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div id="emptyMsg">Carregando dados da planilha…</div>
+        </div>
+      </div>
+      <div class="count-line" id="resultCount"></div>
+    </div>
+  </div>
+  </div>
+
+</main>
+
+<footer>SOMENTE LEITURA · DADOS VIVOS DA PLANILHA DO PECÚLIO 2ºGB (GOOGLE SHEETS) · EDIÇÕES SÃO FEITAS DIRETO NA PLANILHA POR QUEM TEM PERMISSÃO</footer>
+
+<script>
+// ===== CONFIGURAÇÃO DA FONTE DE DADOS =====
+// Backend somente-leitura publicado via Google Apps Script (ver apps-script-doGet.js).
+// A chave abaixo é a mesma definida como SECRET_KEY no script — ela só protege contra
+// acesso casual, então trate a URL do painel como um link "não listado", não público.
+const API_URL = 'https://script.google.com/macros/s/AKfycbyfDwLohPaoK1oSqTYUFTfneoiM7-QvHjkqDyFMWdbTMcOHMKBoXkBC2cXLahm4EO4woQ/exec';
+const API_KEY = 'sp2gb';
+const AUTO_REFRESH_MS = 60000;
+
+const STATUS_META = {
+  ativo:    { label:'Ativo',              cls:'st-ativo',    color:'var(--st-ativo)'   },
+  ferias:   { label:'Férias',             cls:'st-ferias',   color:'var(--st-ferias)'  },
+  saude:    { label:'Licença Saúde',      cls:'st-saude',    color:'var(--st-saude)'   },
+  especial: { label:'Licença Especial',   cls:'st-especial', color:'var(--st-especial)'},
+  agregado: { label:'Adido (curso)',   cls:'st-agregado', color:'var(--st-agregado)'},
+  indisponivel: { label:'Indisponível (curso)', cls:'st-indisponivel', color:'var(--st-indisponivel)'},
+  outro:    { label:'Outro Afastamento',  cls:'st-outro',    color:'var(--st-outro)'   },
+};
+const STATUS_HEX = { ativo:'#3ecf8e', ferias:'#ffb020', saude:'#ff5a5f', especial:'#a78bfa', agregado:'#5b9bd5', indisponivel:'#2dd4bf', outro:'#8b93a1' };
+
+const BASE_SETORES = [
+  {key:'1', label:'1ª SB', group:'Operacional'},
+  {key:'2', label:'2ª SB', group:'Operacional'},
+  {key:'3', label:'3ª SB', group:'Operacional'},
+  {key:'4', label:'4ª SB', group:'Operacional'},
+  {key:'5', label:'5ª SB', group:'Operacional'},
+  {key:'6', label:'6ª SB', group:'Operacional'},
+  {key:'7', label:'7ª SB', group:'Operacional'},
+  {key:'ADM', label:'Administrativo', group:'Administrativo'},
+];
+const SETOR_LABEL_OVERRIDES = { 'ADM':'Administrativo' };
+let SETORES = [...BASE_SETORES];
+
+function rebuildSetores(){
+  const knownKeys = new Set(BASE_SETORES.map(s=>s.key));
+  const extras = new Set();
+  militares.forEach(m=>{
+    const key = String(m.secao||'').trim();
+    if(key && !knownKeys.has(key)) extras.add(key);
+  });
+  const extraList = Array.from(extras).sort().map(key=>({
+    key, label: SETOR_LABEL_OVERRIDES[key] || key, group:'Outros setores'
+  }));
+  SETORES = [...BASE_SETORES, ...extraList];
+}
+
+function setorLabel(key){
+  const s = SETORES.find(x=>x.key===String(key));
+  return s ? s.label : String(key);
+}
+
+const POSTOS_OFICIAIS = ['CEL','TEN CEL','MAJ','CAP','1º TEN','2º TEN','ASP'];
+const POSTOS_PRACAS = ['ST','1º SGT','2º SGT','3º SGT','CB','SD'];
+const POSTOS_LABEL = {
+  'CEL':'Coronel','TEN CEL':'Tenente-Coronel','MAJ':'Major','CAP':'Capitão',
+  '1º TEN':'1º Tenente','2º TEN':'2º Tenente','ASP':'Aspirante a Oficial',
+  'ST':'Subtenente','1º SGT':'1º Sargento','2º SGT':'2º Sargento','3º SGT':'3º Sargento',
+  'CB':'Cabo','SD':'Soldado'
+};
+const POSTOS_ALL = [...POSTOS_OFICIAIS, ...POSTOS_PRACAS];
+function normalizePosto(raw){
+  if(!raw) return null;
+  const t = raw.trim().toUpperCase().replace(/\s+/g,' ');
+  const found = POSTOS_ALL.find(p => p.toUpperCase() === t);
+  return found || null;
+}
+
+let militares = [];
+let afastamentos = [];
+let activeSecoes = new Set();
+let activeStatuses = new Set();
+let searchTerm = '';
+let sortKey = 'ordem';
+let sortDir = 1;
+let refreshTimer = null;
+
+const CACHE_KEY = 'painel-efetivo-2gb-cache';
+
+function showError(msg){
+  const el = document.getElementById('errorBanner');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('liveDot').classList.add('offline');
+}
+function clearError(){
+  document.getElementById('errorBanner').classList.remove('show');
+  document.getElementById('liveDot').classList.remove('offline');
+}
+
+async function fetchData(isManual){
+  const btn = document.getElementById('btnRefresh');
+  if(isManual){ btn.disabled = true; btn.textContent = 'Atualizando…'; }
+  try{
+    const res = await fetch(`${API_URL}?key=${encodeURIComponent(API_KEY)}`, { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    militares = data.militares || [];
+    afastamentos = data.afastamentos || [];
+    rebuildSetores();
+    buildSecChips();
+    clearError();
+    document.getElementById('lastUpdate').textContent = data.updatedAt
+      ? new Date(data.updatedAt).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ militares, afastamentos, updatedAt: data.updatedAt })); }catch(e){}
+    render();
+  }catch(err){
+    showError('Não foi possível atualizar os dados agora (' + err.message + '). Exibindo o último dado carregado com sucesso, se houver.');
+    if(!militares.length){
+      document.getElementById('emptyMsg').textContent = 'Não foi possível carregar os dados da planilha. Verifique a conexão ou tente "Atualizar agora".';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+  }finally{
+    if(isManual){ btn.disabled = false; btn.textContent = '↻ Atualizar agora'; }
+  }
+}
+
+function loadCacheThenFetch(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if(raw){
+      const cached = JSON.parse(raw);
+      militares = cached.militares || [];
+      afastamentos = cached.afastamentos || [];
+      if(militares.length){
+        rebuildSetores();
+        buildSecChips();
+        document.getElementById('lastUpdate').textContent =
+          (cached.updatedAt ? new Date(cached.updatedAt).toLocaleString('pt-BR') : '') + ' (em cache — atualizando…)';
+        render();
+      }
+    }
+  }catch(e){}
+  fetchData(false);
+}
+
+function buildSecChips(){
+  const secWrap = document.getElementById('secChips');
+  secWrap.innerHTML = SETORES.map(s => `<button class="chip${activeSecoes.has(s.key)?' active':''}" data-sec="${s.key}">${s.label}</button>`).join('');
+  secWrap.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const v = chip.dataset.sec;
+      activeSecoes.has(v) ? activeSecoes.delete(v) : activeSecoes.add(v);
+      chip.classList.toggle('active');
+      render();
+    });
+  });
+}
+
+function buildStatusChips(){
+  const stWrap = document.getElementById('statusChips');
+  stWrap.innerHTML = Object.entries(STATUS_META).map(([key,m]) =>
+    `<button class="chip ${m.cls}" data-st="${key}">${m.label}</button>`).join('');
+  stWrap.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const v = chip.dataset.st;
+      activeStatuses.has(v) ? activeStatuses.delete(v) : activeStatuses.add(v);
+      chip.classList.toggle('active');
+      render();
+    });
+  });
+}
+
+function filtered(){
+  return militares.filter(m=>{
+    if(activeSecoes.size && !activeSecoes.has(String(m.secao))) return false;
+    if(activeStatuses.size && !activeStatuses.has(m.status)) return false;
+    if(searchTerm){
+      const t = searchTerm.toLowerCase();
+      if(!(m.nome||'').toLowerCase().includes(t) && !(m.matricula||'').toLowerCase().includes(t)) return false;
+    }
+    return true;
+  });
+}
+
+function sortRows(rows){
+  return rows.slice().sort((a,b)=>{
+    if(sortKey==='ordem'){
+      const av = (a.ordem===null || a.ordem===undefined) ? Infinity : a.ordem;
+      const bv = (b.ordem===null || b.ordem===undefined) ? Infinity : b.ordem;
+      return (av-bv)*sortDir;
+    }
+    let av = (a[sortKey]||''), bv = (b[sortKey]||'');
+    if(av < bv) return -1*sortDir;
+    if(av > bv) return 1*sortDir;
+    return 0;
+  });
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  const [y,m,day] = d.split('-');
+  return day && m && y ? `${day}/${m}/${y}` : d;
+}
+
+function dataRetorno(fimStr){
+  if(!fimStr) return '';
+  const [y,m,d] = fimStr.split('-').map(Number);
+  const retorno = new Date(y, m-1, d+1); // dia seguinte ao fim do afastamento
+  const ry = retorno.getFullYear(), rm = String(retorno.getMonth()+1).padStart(2,'0'), rd = String(retorno.getDate()).padStart(2,'0');
+  return `${ry}-${rm}-${rd}`;
+}
+
+function diasRestantes(status, fimStr){
+  if(status === 'ativo' || !fimStr) return '—';
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const retornoStr = dataRetorno(fimStr);
+  const [y,m,d] = retornoStr.split('-').map(Number);
+  const retorno = new Date(y, m-1, d);
+  const dias = Math.round((retorno - hoje) / 86400000);
+  if(dias <= 0) return '—';
+  if(dias === 1) return 'volta amanhã';
+  return `volta em ${dias} dias`;
+}
+
+function buildKpiCardsHtml(counts, total){
+  const pct = n => total ? Math.round(n/total*100)+'%' : '—';
+  const cards = [
+    {cls:'total', num: total, lbl:'Efetivo total 2ºGB', pct:''},
+    {cls:'ativo', num: counts.ativo, lbl:'Ativos / disponíveis', pct: pct(counts.ativo)},
+    {cls:'ferias', num: counts.ferias, lbl:'De férias', pct: pct(counts.ferias)},
+    {cls:'saude', num: counts.saude, lbl:'Licença saúde', pct: pct(counts.saude)},
+    {cls:'especial', num: counts.especial, lbl:'Licença especial', pct: pct(counts.especial)},
+    {cls:'agregado', num: counts.agregado, lbl:'Adido (curso)', pct: pct(counts.agregado)},
+    {cls:'indisponivel', num: counts.indisponivel, lbl:'Indisponível (curso)', pct: pct(counts.indisponivel)},
+    {cls:'outro', num: counts.outro, lbl:'Outros afastamentos', pct: pct(counts.outro)},
+  ];
+  return cards.map(c=>`
+    <div class="kpi ${c.cls}">
+      <div class="num">${c.num}</div>
+      <div class="lbl">${c.lbl}</div>
+      ${c.pct ? `<div class="pct">${c.pct} do efetivo</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderKPIs(){
+  const total = militares.length;
+  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
+  militares.forEach(m=> counts[m.status] = (counts[m.status]||0)+1 );
+  document.getElementById('kpiGrid').innerHTML = buildKpiCardsHtml(counts, total);
+}
+
+function buildDonut(counts, total){
+  const R = 62, STROKE = 20, C = 2*Math.PI*R, CX=90, CY=90;
+  const order = ['ativo','ferias','saude','especial','agregado','indisponivel','outro'];
+  let offset = 0;
+  let segs = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#1c2530" stroke-width="${STROKE}"/>`;
+  if(total){
+    segs += order.map(key=>{
+      const val = counts[key]||0;
+      if(!val) return '';
+      const frac = val/total;
+      const len = frac*C;
+      const gap = Math.max(C - len, 0);
+      const circ = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${STATUS_HEX[key]}" stroke-width="${STROKE}"
+        stroke-dasharray="${len} ${gap}" stroke-dashoffset="${-offset}" stroke-linecap="butt"
+        transform="rotate(-90 ${CX} ${CY})"/>`;
+      offset += len;
+      return circ;
+    }).join('');
+  }
+  return `<svg viewBox="0 0 180 180" width="176" height="176">${segs}
+    <text x="90" y="84" text-anchor="middle" font-family="Bebas Neue" font-size="34" fill="#fff">${total}</text>
+    <text x="90" y="104" text-anchor="middle" font-family="Inter" font-size="10" letter-spacing="1" fill="#8996a6">EFETIVO</text>
+  </svg>`;
+}
+
+function renderDonut(){
+  const wrap = document.getElementById('donutWrap');
+  const total = militares.length;
+  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
+  militares.forEach(m=> counts[m.status] = (counts[m.status]||0)+1 );
+
+  if(!total){
+    wrap.innerHTML = `<div style="font-size:12.5px;color:var(--ink-dim);text-align:center;padding:20px 0;">Sem dados<br>para exibir o gráfico</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    ${buildDonut(counts, total)}
+    <div class="legend">
+      ${Object.entries(STATUS_META).map(([k,m])=>`
+        <div class="item">
+          <span class="lbl-group"><span class="dot" style="background:${STATUS_HEX[k]}"></span>${m.label}</span>
+          <span class="val">${counts[k]||0}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderBreakdown(){
+  const wrap = document.getElementById('secBreakdown');
+  if(!militares.length){
+    wrap.innerHTML = '<div style="font-size:13px;color:var(--ink-dim);">Sem dados para exibir.</div>';
+    return;
+  }
+  const maxCount = Math.max(1, ...SETORES.map(s => militares.filter(m=>String(m.secao)===s.key).length));
+  const groups = Array.from(new Set(SETORES.map(s=>s.group)));
+  wrap.innerHTML = groups.map(g=>{
+    const setoresGrupo = SETORES.filter(s=>s.group===g);
+    const rows = setoresGrupo.map(s=>{
+      const rowsData = militares.filter(m=>String(m.secao)===s.key);
+      const n = rowsData.length;
+      const segs = Object.keys(STATUS_META).map(key=>{
+        const c = rowsData.filter(m=>m.status===key).length;
+        if(!c) return '';
+        const w = (c/maxCount*100);
+        return `<span title="${STATUS_META[key].label}: ${c}" style="width:${w}%;background:${STATUS_HEX[key]}"></span>`;
+      }).join('');
+      return `
+        <div class="sec-row">
+          <span class="tag">${s.label}</span>
+          <div class="stack">${segs || ''}</div>
+          <span class="count">${n} milit.</span>
+        </div>`;
+    }).join('');
+    return `<div class="grp-label">${g}</div>${rows}`;
+  }).join('');
+}
+
+function buildMonthOptions(){
+  const sel = document.getElementById('projMonth');
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentKey = `${currentYear}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const opts = [];
+  for(let m=1;m<=12;m++){
+    const d = new Date(currentYear, m-1, 1);
+    const key = `${currentYear}-${String(m).padStart(2,'0')}`;
+    let label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    label = label.charAt(0).toUpperCase()+label.slice(1);
+    opts.push(`<option value="${key}"${key===currentKey?' selected':''}>${label}</option>`);
+  }
+  sel.innerHTML = opts.join('');
+  sel.addEventListener('change', renderProjecao);
+}
+
+function projectedStatusByMatricula(monthKey){
+  const [y,m] = monthKey.split('-').map(Number);
+  const lastDay = new Date(y, m, 0).getDate();
+  const monthStart = `${monthKey}-01`;
+  const monthEnd = `${monthKey}-${String(lastDay).padStart(2,'0')}`;
+  const statusByMat = {};
+  afastamentos.forEach(a=>{
+    if(!a.inicio || !a.fim) return;
+    if(a.inicio <= monthEnd && a.fim >= monthStart){
+      if(!statusByMat[a.matricula]) statusByMat[a.matricula] = a.tipo;
+    }
+  });
+  return statusByMat;
+}
+
+function renderProjecao(){
+  const sel = document.getElementById('projMonth');
+  if(!sel.value || !militares.length){
+    document.getElementById('projKpiGrid').innerHTML = '';
+    document.getElementById('projDonutWrap').innerHTML = '<div style="font-size:12.5px;color:var(--ink-dim);text-align:center;padding:20px 0;">Sem dados<br>para projetar</div>';
+    document.getElementById('projBreakdown').innerHTML = '';
+    return;
+  }
+  const monthKey = sel.value;
+  const statusByMat = projectedStatusByMatricula(monthKey);
+  const total = militares.length;
+  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
+  militares.forEach(m=>{
+    const tipo = statusByMat[m.matricula] || 'ativo';
+    counts[tipo] = (counts[tipo]||0)+1;
+  });
+  document.getElementById('projKpiGrid').innerHTML = buildKpiCardsHtml(counts, total);
+
+  document.getElementById('projDonutWrap').innerHTML = `
+    ${buildDonut(counts, total)}
+    <div class="legend">
+      ${Object.entries(STATUS_META).map(([k,mt])=>`
+        <div class="item">
+          <span class="lbl-group"><span class="dot" style="background:${STATUS_HEX[k]}"></span>${mt.label}</span>
+          <span class="val">${counts[k]||0}</span>
+        </div>`).join('')}
+    </div>`;
+
+  const wrap = document.getElementById('projBreakdown');
+  const maxCount = Math.max(1, ...SETORES.map(s => militares.filter(m=>String(m.secao)===s.key).length));
+  const groups = Array.from(new Set(SETORES.map(s=>s.group)));
+  wrap.innerHTML = groups.map(g=>{
+    const setoresGrupo = SETORES.filter(s=>s.group===g);
+    const rows = setoresGrupo.map(s=>{
+      const rowsData = militares.filter(m=>String(m.secao)===s.key);
+      const n = rowsData.length;
+      const segs = Object.keys(STATUS_META).map(key=>{
+        const c = rowsData.filter(m => (statusByMat[m.matricula] || 'ativo') === key).length;
+        if(!c) return '';
+        const w = (c/maxCount*100);
+        return `<span title="${STATUS_META[key].label}: ${c}" style="width:${w}%;background:${STATUS_HEX[key]}"></span>`;
+      }).join('');
+      return `
+        <div class="sec-row">
+          <span class="tag">${s.label}</span>
+          <div class="stack">${segs || ''}</div>
+          <span class="count">${n} milit.</span>
+        </div>`;
+    }).join('');
+    return `<div class="grp-label">${g}</div>${rows}`;
+  }).join('');
+
+  // Lista nominal dos militares com afastamento projetado nesse mês
+  const [py, pm] = monthKey.split('-').map(Number);
+  const pLastDay = new Date(py, pm, 0).getDate();
+  const pMonthStart = `${monthKey}-01`;
+  const pMonthEnd = `${monthKey}-${String(pLastDay).padStart(2,'0')}`;
+
+  const periodoByMat = {};
+  afastamentos.forEach(a=>{
+    if(!a.inicio || !a.fim) return;
+    if(a.inicio <= pMonthEnd && a.fim >= pMonthStart){
+      if(!periodoByMat[a.matricula]) periodoByMat[a.matricula] = a;
+    }
+  });
+
+  const TIPO_ORDER = ['ferias','saude','especial','agregado','indisponivel','outro'];
+  const projetados = militares
+    .filter(m => statusByMat[m.matricula])
+    .map(m => ({ m, tipo: statusByMat[m.matricula] }))
+    .sort((a,b) => {
+      const oa = TIPO_ORDER.indexOf(a.tipo), ob = TIPO_ORDER.indexOf(b.tipo);
+      if(oa !== ob) return oa - ob;
+      return (a.m.nome||'').localeCompare(b.m.nome||'');
+    });
+
+  document.getElementById('projEmpty').style.display = projetados.length ? 'none' : 'block';
+  document.getElementById('projCount').textContent = projetados.length
+    ? `${projetados.length} militar(es) com afastamento projetado neste mês` : '';
+  document.getElementById('projTbody').innerHTML = projetados.map(({m, tipo}) => {
+    const st = STATUS_META[tipo] || STATUS_META.outro;
+    const periodo = periodoByMat[m.matricula];
+    // Mostra só o trecho do período que cai dentro do mês selecionado
+    const trechoInicio = periodo && periodo.inicio > pMonthStart ? periodo.inicio : pMonthStart;
+    const trechoFim = periodo && periodo.fim < pMonthEnd ? periodo.fim : pMonthEnd;
+    return `
+      <tr>
+        <td>${escapeHtml(m.nome||'—')}</td>
+        <td class="mono">${escapeHtml(m.matricula||'—')}</td>
+        <td>${escapeHtml(m.posto||'—')}</td>
+        <td><span class="sec-badge">${setorLabel(m.secao)}</span></td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td>${periodo ? fmtDate(trechoInicio) + ' – ' + fmtDate(trechoFim) : '—'}</td>
+      </tr>`;
+  }).join('');
+}
+
+function renderPostoMatrix(){
+  const wrap = document.getElementById('postoMatrix');
+  if(!militares.length){
+    wrap.innerHTML = '<div style="font-size:13px;color:var(--ink-dim);">Sem dados para exibir.</div>';
+    return;
+  }
+  function countFor(posto, secKey){
+    return militares.filter(m => normalizePosto(m.posto) === posto && String(m.secao) === secKey).length;
+  }
+  function rowHtml(posto){
+    const counts = SETORES.map(s => countFor(posto, s.key));
+    const total = counts.reduce((a,b)=>a+b,0);
+    return `<tr><td>${POSTOS_LABEL[posto]} <span class="mono" style="color:var(--ink-dim);font-size:11px;">(${posto})</span></td>` +
+      counts.map(c=>`<td class="num-cell${c?' strong':''}">${c || '–'}</td>`).join('') +
+      `<td class="num-cell strong">${total}</td></tr>`;
+  }
+  function subtotalHtml(label, list){
+    const counts = SETORES.map(s => list.reduce((sum,p)=> sum + countFor(p,s.key), 0));
+    const total = counts.reduce((a,b)=>a+b,0);
+    return `<tr class="subtotal-row"><td>Subtotal ${label}</td>` +
+      counts.map(c=>`<td class="num-cell">${c}</td>`).join('') +
+      `<td class="num-cell">${total}</td></tr>`;
+  }
+
+  const naoClassCounts = SETORES.map(s => militares.filter(m => !normalizePosto(m.posto) && String(m.secao)===s.key).length);
+  const naoClassTotal = naoClassCounts.reduce((a,b)=>a+b,0);
+  const totalCounts = SETORES.map(s => militares.filter(m => String(m.secao)===s.key).length);
+  const grandTotal = totalCounts.reduce((a,b)=>a+b,0);
+
+  let html = `<table class="matrix-tbl"><thead><tr><th>Posto/Graduação</th>` +
+    SETORES.map(s=>`<th>${s.label}</th>`).join('') + `<th>Total</th></tr></thead><tbody>`;
+
+  html += `<tr class="grp-row"><td colspan="${SETORES.length+2}">Oficiais</td></tr>`;
+  html += POSTOS_OFICIAIS.map(rowHtml).join('');
+  html += subtotalHtml('Oficiais', POSTOS_OFICIAIS);
+
+  html += `<tr class="grp-row"><td colspan="${SETORES.length+2}">Praças</td></tr>`;
+  html += POSTOS_PRACAS.map(rowHtml).join('');
+  html += subtotalHtml('Praças', POSTOS_PRACAS);
+
+  if(naoClassTotal){
+    html += `<tr><td>Não classificado <span style="color:var(--ink-dim);font-size:11px;">(posto fora do padrão)</span></td>` +
+      naoClassCounts.map(c=>`<td class="num-cell${c?' strong':''}">${c || '–'}</td>`).join('') +
+      `<td class="num-cell strong">${naoClassTotal}</td></tr>`;
+  }
+
+  html += `<tr class="total-row"><td>Total geral</td>` +
+    totalCounts.map(c=>`<td class="num-cell">${c}</td>`).join('') +
+    `<td class="num-cell">${grandTotal}</td></tr>`;
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function renderRetorno(){
+  const afastados = militares
+    .filter(m => m.status !== 'ativo' && m.fim)
+    .slice()
+    .sort((a,b) => a.fim.localeCompare(b.fim));
+
+  document.getElementById('retornoEmpty').style.display = afastados.length ? 'none' : 'block';
+  document.getElementById('retornoTbody').innerHTML = afastados.map(m=>{
+    const st = STATUS_META[m.status] || STATUS_META.outro;
+    return `
+      <tr>
+        <td>${escapeHtml(m.nome||'—')}</td>
+        <td class="mono">${escapeHtml(m.matricula||'—')}</td>
+        <td>${escapeHtml(m.posto||'—')}</td>
+        <td><span class="sec-badge">${setorLabel(m.secao)}</span></td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td>${fmtDate(dataRetorno(m.fim))}</td>
+        <td class="mono">${diasRestantes(m.status, m.fim)}</td>
+      </tr>`;
+  }).join('');
+}
+
+function renderTable(){
+  const rows = sortRows(filtered());
+  const tbody = document.getElementById('tbody');
+  document.getElementById('emptyState').style.display = militares.length ? 'none' : 'block';
+  document.getElementById('resultCount').textContent =
+    militares.length ? `Exibindo ${rows.length} de ${militares.length} militar(es)` : '';
+
+  tbody.innerHTML = rows.map(m=>{
+    const st = STATUS_META[m.status] || STATUS_META.outro;
+    return `
+      <tr>
+        <td class="mono">${m.ordem ?? '—'}</td>
+        <td>${escapeHtml(m.nome||'—')}</td>
+        <td class="mono">${escapeHtml(m.matricula||'—')}</td>
+        <td>${escapeHtml(m.posto||'—')}</td>
+        <td><span class="sec-badge">${setorLabel(m.secao)}</span></td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td>${fmtDate(m.inicio)}</td>
+        <td>${fmtDate(m.fim)}</td>
+        <td class="mono">${diasRestantes(m.status, m.fim)}</td>
+      </tr>`;
+  }).join('');
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function render(){
+  renderKPIs();
+  renderDonut();
+  renderBreakdown();
+  renderProjecao();
+  renderPostoMatrix();
+  renderRetorno();
+  renderTable();
+}
+
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(militares, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `efetivo-2gb-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+});
+
+document.getElementById('btnRefresh').addEventListener('click', ()=> fetchData(true));
+
+document.getElementById('searchBox').addEventListener('input', e=>{
+  searchTerm = e.target.value; render();
+});
+document.getElementById('clearFilters').addEventListener('click', ()=>{
+  activeSecoes.clear(); activeStatuses.clear(); searchTerm='';
+  document.getElementById('searchBox').value='';
+  document.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
+  render();
+});
+document.querySelectorAll('#tbl thead th[data-key]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(sortKey===key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+    render();
+  });
+});
+
+function initTabs(){
+  const buttons = document.querySelectorAll('.tab-btn');
+  buttons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const target = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.dataset.tabPanel===target));
+    });
+  });
+}
+
+// ---- Init ----
+initTabs();
+buildStatusChips();
+buildSecChips();
+buildMonthOptions();
+loadCacheThenFetch();
+refreshTimer = setInterval(()=> fetchData(false), AUTO_REFRESH_MS);
+</script>
+</body>
+</html>
