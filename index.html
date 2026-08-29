@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -265,6 +266,7 @@
         <select id="projMonth"></select>
       </div>
     </div>
+    <div class="kpi-grid" id="projKpiGrid" style="margin-bottom:18px;"></div>
     <div class="charts-row">
       <div class="donut-wrap" id="projDonutWrap"></div>
       <div class="bars-wrap" id="projBreakdown"></div>
@@ -605,12 +607,8 @@ function diasRestantes(status, fimStr){
   return `volta em ${dias} dias`;
 }
 
-function renderKPIs(){
-  const total = militares.length;
-  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
-  militares.forEach(m=> counts[m.status] = (counts[m.status]||0)+1 );
+function buildKpiCardsHtml(counts, total){
   const pct = n => total ? Math.round(n/total*100)+'%' : '—';
-
   const cards = [
     {cls:'total', num: total, lbl:'Efetivo total 2ºGB', pct:''},
     {cls:'ativo', num: counts.ativo, lbl:'Ativos / disponíveis', pct: pct(counts.ativo)},
@@ -621,13 +619,20 @@ function renderKPIs(){
     {cls:'indisponivel', num: counts.indisponivel, lbl:'Indisponível (curso)', pct: pct(counts.indisponivel)},
     {cls:'outro', num: counts.outro, lbl:'Outros afastamentos', pct: pct(counts.outro)},
   ];
-  document.getElementById('kpiGrid').innerHTML = cards.map(c=>`
+  return cards.map(c=>`
     <div class="kpi ${c.cls}">
       <div class="num">${c.num}</div>
       <div class="lbl">${c.lbl}</div>
       ${c.pct ? `<div class="pct">${c.pct} do efetivo</div>` : ''}
     </div>
   `).join('');
+}
+
+function renderKPIs(){
+  const total = militares.length;
+  const counts = { ativo:0, ferias:0, saude:0, especial:0, agregado:0, indisponivel:0, outro:0 };
+  militares.forEach(m=> counts[m.status] = (counts[m.status]||0)+1 );
+  document.getElementById('kpiGrid').innerHTML = buildKpiCardsHtml(counts, total);
 }
 
 function buildDonut(counts, total){
@@ -742,6 +747,7 @@ function projectedStatusByMatricula(monthKey){
 function renderProjecao(){
   const sel = document.getElementById('projMonth');
   if(!sel.value || !militares.length){
+    document.getElementById('projKpiGrid').innerHTML = '';
     document.getElementById('projDonutWrap').innerHTML = '<div style="font-size:12.5px;color:var(--ink-dim);text-align:center;padding:20px 0;">Sem dados<br>para projetar</div>';
     document.getElementById('projBreakdown').innerHTML = '';
     return;
@@ -754,6 +760,7 @@ function renderProjecao(){
     const tipo = statusByMat[m.matricula] || 'ativo';
     counts[tipo] = (counts[tipo]||0)+1;
   });
+  document.getElementById('projKpiGrid').innerHTML = buildKpiCardsHtml(counts, total);
 
   document.getElementById('projDonutWrap').innerHTML = `
     ${buildDonut(counts, total)}
